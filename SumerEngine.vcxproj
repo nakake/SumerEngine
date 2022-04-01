@@ -29,6 +29,7 @@
   <ItemGroup>
     <ClInclude Include="include\D3DManager.h" />
     <ClInclude Include="include\GraphicManager.h" />
+    <ClInclude Include="include\IFManager.h" />
     <ClInclude Include="include\RenderManager.h" />
     <ClInclude Include="include\SumerEngine.h" />
     <ClInclude Include="include\WndManager.h" />

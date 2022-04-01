@@ -60,12 +60,20 @@ bool WndManager::InitWnd() {
 	return true;
 }
 
-void WndManager::TermWnd() {
+
+void WndManager::TermWndManager() {
 	if (hInst != nullptr) {
 		UnregisterClass(ClassName, hInst);
 	}
 	hInst = nullptr;
 	hWnd  = nullptr;
+}
+
+void WndManager::Copy(const WndManager* wnd) {
+	hInst	= wnd->hInst;
+	hWnd	= wnd->hWnd;
+	Width	= wnd->Width;
+	Height	= wnd->Height;
 }
 
 LRESULT CALLBACK WndManager::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
