@@ -1,10 +1,6 @@
 #include "WndManager.h"
 
-namespace {
-	const auto ClassName = TEXT("SumerEngineWindowClass");
-}
-
-bool WndManager::InitWnd() {
+bool WndManager::Init() {
 	auto _hInst = GetModuleHandle(nullptr);
 	if (_hInst == nullptr) {
 		return  false;
@@ -20,7 +16,7 @@ bool WndManager::InitWnd() {
 	wc.hCursor			= LoadCursor(hInst, IDC_ARROW);
 	wc.hbrBackground	= GetSysColorBrush(COLOR_BACKGROUND);
 	wc.lpszMenuName		= nullptr;
-	wc.lpszClassName	= ClassName;
+	wc.lpszClassName	= appName;
 	wc.hIconSm			= LoadIcon(hInst, IDI_APPLICATION);
 
 	if (!RegisterClassEx(&wc)) {
@@ -36,8 +32,8 @@ bool WndManager::InitWnd() {
 
 	hWnd = CreateWindowEx(
 		0, 
-		ClassName,
-		TEXT("SumerEngine"),
+		appName,
+		appName,
 		style,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
@@ -63,7 +59,7 @@ bool WndManager::InitWnd() {
 
 void WndManager::TermWndManager() {
 	if (hInst != nullptr) {
-		UnregisterClass(ClassName, hInst);
+		UnregisterClass(appName, hInst);
 	}
 	hInst = nullptr;
 	hWnd  = nullptr;

@@ -1,6 +1,10 @@
 #include "SumerEngine.h"
 
-bool SumerEngine::InitEngine() {
+void SumerEngine::StartEngine() {
+	MainLoop();
+}
+
+bool SumerEngine::Init() {
 #if defined(DEBUG) || defined(_DEBUG)
 	{
 		ComPtr<ID3D12Debug> debug;
@@ -10,15 +14,21 @@ bool SumerEngine::InitEngine() {
 			
 			debug->EnableDebugLayer();
 		}
+
 	}
 #endif
-	wndManager.reset(new WndManager(width, height));
-	if (!wndManager->InitWnd()) {
+	wndManager.reset(new WndManager(width, height, appName));
+	if (!wndManager->Init()) {
 		return false;
 	}
 
 	d3dManager.reset(new D3DManager());
-	if (!d3dManager->InitD3DManager(wndManager.get(), frameCount)) {
+	if (!d3dManager->Init(wndManager.get(), frameCount)) {
+		return false;
+	}
+
+	m_Scene.reset(new Scene(d3dManager->GetGraphicManager(), frameCount));
+	if (!m_Scene->Init()) {
 		return false;
 	}
 
@@ -31,7 +41,7 @@ void SumerEngine::SetClearColor(float red, float green, float blue, float alpha)
 	d3dManager->SetClearColor(red, green, blue, alpha);
 }
 
-bool SumerEngine::LoopSetUp() {
+void SumerEngine::MainLoop() {
 	MSG msg = {};
 
 	while (WM_QUIT != msg.message) {
@@ -40,11 +50,12 @@ bool SumerEngine::LoopSetUp() {
 			DispatchMessage(&msg);
 		}
 		else {
-			break;
+			m_Scene->Update();
+			StartRender();
+			m_Scene->Draw();
+			EndRender();
 		}
 	}
-
-	return msg.message != WM_QUIT;
 }
 
 void SumerEngine::StartRender() {

@@ -1,5 +1,6 @@
 #include "GraphicManager.h"
 
+
 void GraphicManager::StartRender() {
 	pvCmdAllocator[FrameIndex]->Reset();
 	pCmdList->Reset(pvCmdAllocator[FrameIndex].Get(), nullptr);
@@ -10,6 +11,9 @@ void GraphicManager::StartRender() {
 	barrier.Transition.StateBefore	= D3D12_RESOURCE_STATE_PRESENT;
 	barrier.Transition.StateAfter	= D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barrier.Transition.Subresource	= D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+	pCmdList->RSSetViewports(1, &Viewport);
+	pCmdList->RSSetScissorRects(1, &Scissor);
 
 	pCmdList->ResourceBarrier(1, &barrier);
 
@@ -41,6 +45,7 @@ void GraphicManager::EndRender() {
 	Present(1);
 }
 
+//描画が終了するまで待ち、終了処理を行う
 void GraphicManager::Present(uint32_t interval) {
 	pSwapChain->Present(interval, 0);
 
@@ -49,6 +54,7 @@ void GraphicManager::Present(uint32_t interval) {
 
 	FrameIndex = pSwapChain->GetCurrentBackBufferIndex();
 
+	//次のフレームの描画準備がまだであれば待機する
 	if (pFence->GetCompletedValue() < vFenceCounter[FrameIndex]) {
 		pFence->SetEventOnCompletion(vFenceCounter[FrameIndex], FenceEvent);
 		WaitForSingleObjectEx(FenceEvent, INFINITE, FALSE);
@@ -102,7 +108,7 @@ void GraphicManager::TermGraphicManager() {
 
 }
 
-bool GraphicManager::InitGraphicManager(const WndManager* wnd, uint32_t frameCount) {
+bool GraphicManager::Init(const WndManager* wnd, uint32_t frameCount) {
 	wManager.reset(new WndManager);
 	wManager->Copy(wnd);
 	this->FrameCount	= frameCount;
@@ -127,30 +133,41 @@ bool GraphicManager::InitGraphicManager(const WndManager* wnd, uint32_t frameCou
 
 	//デバイスの生成
 	if (!CreateDevice()) {
+		ErrorMessage(wManager->getHandleWnd(), TEXT("Error : GraphicManager デバイスの生成に失敗しました"));
 		return false;
 	}
 
 	if (!CreateCmdQueue()) {
+		ErrorMessage(wManager->getHandleWnd(), TEXT("Error : GraphicManager コマンドキューの生成に失敗しました"));
 		return false;
 	}
 	if (!CreateSwapChain(pFactory)) {
+		ErrorMessage(wManager->getHandleWnd(), TEXT("Error : GraphicManager スワップチェインの生成に失敗しました"));
 		return false;
 	}
 	if (!CreateCmdAllocator()) {
+		ErrorMessage(wManager->getHandleWnd(), TEXT("Error : GraphicManager コマンドアローケータの生成に失敗しました"));
 		return false;
 	}
 	if (!CreateCmdList()) {
+		ErrorMessage(wManager->getHandleWnd(), TEXT("Error : GraphicManager コマンドリストの生成に失敗しました"));
 		return false;
 	}
 	if (!CreateRTV()) {
+		ErrorMessage(wManager->getHandleWnd(), TEXT("Error : GraphicManager レンダーターゲットビューの生成に失敗しました"));
 		return false;
 	}
 	if (!CreateDSV()) {
+		ErrorMessage(wManager->getHandleWnd(), TEXT("Error : GraphicManager 深度ステンシルビューの生成に失敗しました"));
 		return false;
 	}
 	if (!CreateFence()) {
+		ErrorMessage(wManager->getHandleWnd(), TEXT("Error : GraphicManager フェンスの生成に失敗しました"));
 		return false;
 	}
+
+	CreateViewPort();
+	CreateScissorRect();
 
 	pFactory.Reset();
 	return true;
@@ -170,11 +187,11 @@ bool GraphicManager::CreateDevice() {
 }
 
 bool GraphicManager::CreateCmdQueue() {
-	D3D12_COMMAND_QUEUE_DESC desc = {};
-	desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-	desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	desc.NodeMask = 0;
+	D3D12_COMMAND_QUEUE_DESC desc	= {};
+	desc.Type						= D3D12_COMMAND_LIST_TYPE_DIRECT;
+	desc.Priority					= D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+	desc.Flags						= D3D12_COMMAND_QUEUE_FLAG_NONE;
+	desc.NodeMask					= 0;
 
 	auto hr = pDevice->CreateCommandQueue(&desc, IID_PPV_ARGS(pQueue.GetAddressOf()));
 	if (FAILED(hr)) {
@@ -243,6 +260,8 @@ bool GraphicManager::CreateCmdList() {
 	if (FAILED(hr)) {
 		return false;
 	}
+
+	pCmdList->Close();
 
 	return true;
 }
@@ -353,7 +372,7 @@ bool GraphicManager::CreateFence() {
 	}
 
 	auto hr = pDevice->CreateFence(
-		vFenceCounter[FrameIndex],
+		0,
 		D3D12_FENCE_FLAG_NONE,
 		IID_PPV_ARGS(pFence.GetAddressOf())
 	);
@@ -369,4 +388,20 @@ bool GraphicManager::CreateFence() {
 	}
 
 	return true;
+}
+
+void GraphicManager::CreateViewPort() {
+	Viewport.TopLeftX	= 0;
+	Viewport.TopLeftY	= 0;
+	Viewport.Width		= static_cast<float>(wManager->GetWidth());
+	Viewport.Height		= static_cast<float>(wManager->GetHeight());
+	Viewport.MinDepth	= 0.0f;
+	Viewport.MaxDepth	= 1.0f;
+}
+
+void GraphicManager::CreateScissorRect() {
+	Scissor.left	= 0;
+	Scissor.right	= wManager->GetWidth();
+	Scissor.top		= 0;
+	Scissor.bottom	= wManager->GetHeight();
 }

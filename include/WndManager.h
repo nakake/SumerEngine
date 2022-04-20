@@ -5,8 +5,8 @@
 class WndManager
 {
 public:
-	WndManager(uint32_t _width, uint32_t _height) :
-		hInst(nullptr), hWnd(nullptr), Width(_width), Height(_height)
+	WndManager(uint32_t _width, uint32_t _height, const TCHAR* _appName) :
+		hInst(nullptr), hWnd(nullptr), Width(_width), Height(_height), appName(_appName)
 	{}
 
 	WndManager(const WndManager& wnd) :
@@ -32,14 +32,15 @@ public:
 	}
 
 	void Copy(const WndManager* wnd);
-	bool InitWnd();
+	bool Init();
 	
 
 private:
-	HINSTANCE	hInst;
-	HWND		hWnd;
-	uint32_t	Width;
-	uint32_t	Height;
+	HINSTANCE		hInst;
+	HWND			hWnd;
+	uint32_t		Width;
+	uint32_t		Height;
+	const TCHAR*	appName;
 	
 	void TermWndManager();
 
