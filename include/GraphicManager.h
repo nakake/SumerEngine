@@ -2,6 +2,8 @@
 
 #include "IFManager.h"
 #include "WndManager.h"
+#include "ComPtr.h"
+#include "ErrorMassage.h"
 
 using std::vector;
 
@@ -16,7 +18,7 @@ public:
 		TermGraphicManager();
 	}
 
-	bool InitGraphicManager(const WndManager* wnd, uint32_t frameCount);
+	bool Init(const WndManager* wnd, uint32_t frameCount);
 	void StartRender();
 	void EndRender();
 
@@ -28,6 +30,22 @@ public:
 		clearColor[1] = green;
 		clearColor[2] = blue;
 		clearColor[3] = alpha;
+	}
+
+	ID3D12Device* GetDevice() const {
+		return pDevice.Get();
+	}
+
+	ID3D12GraphicsCommandList* GetCmdList()  const {
+		return pCmdList.Get();
+	}
+
+	uint32_t GetFrameIndex()  const {
+		return FrameIndex;
+	}
+
+	WndManager* GetWnd() const {
+		return wManager.get();
 	}
 
 private:
@@ -51,6 +69,8 @@ private:
 	uint32_t								FrameIndex;
 	vector<D3D12_CPU_DESCRIPTOR_HANDLE>		vHandleRTV;
 	D3D12_CPU_DESCRIPTOR_HANDLE				HandleDSV;
+	D3D12_VIEWPORT							Viewport;
+	D3D12_RECT								Scissor;
 
 	bool CreateDevice();
 	bool CreateCmdQueue();
@@ -60,6 +80,8 @@ private:
 	bool CreateRTV();
 	bool CreateDSV();
 	bool CreateFence();
+	void CreateViewPort();
+	void CreateScissorRect();
 
 	void Present(uint32_t interval);
 	void WaitGPU();

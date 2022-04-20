@@ -1,13 +1,13 @@
 #include "D3DManager.h"
 
-bool D3DManager::InitD3DManager(const WndManager* wnd, uint32_t _frameCount) {
+bool D3DManager::Init(const WndManager* wnd, uint32_t _frameCount) {
 	wManager.reset(new WndManager());
 	wManager->Copy(wnd);
 
 	frameCount = _frameCount;
 	
 	gManager.reset(new GraphicManager());
-	gManager->InitGraphicManager(wManager.get(), frameCount);
+	gManager->Init(wManager.get(), frameCount);
 	return true;
 }
 

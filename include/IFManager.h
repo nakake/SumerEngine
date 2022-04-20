@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <d3d12.h>
 #include <dxgi1_4.h>
+#include <DirectXTex.h>
+#include <d3dx12.h>
 #include <wrl/client.h>
 #include <cassert>
 #include <DirectXMath.h>
@@ -14,11 +16,8 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
-template<typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;
-
-
-#include "D3DManager.h"
-#include "GraphicManager.h"
-#include "RenderManager.h"
-#include "SumerEngine.h"
-#include "WndManager.h"
+enum SME_FRAMEBUFFER {
+	SME_FRAMEBUFFER_SINGLE = 1,
+	SME_FRAMEBUFFER_DOUBLE,
+	SME_FRAMEBUFFER_TRIPLE
+};

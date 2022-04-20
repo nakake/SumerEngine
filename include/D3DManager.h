@@ -3,7 +3,6 @@
 #include "IFManager.h"
 #include "WndManager.h"
 #include "GraphicManager.h"
-#include "RenderManager.h"
 
 class Wndmanager;
 class GraphicManager;
@@ -14,13 +13,15 @@ class D3DManager
 public:
 	D3DManager(){}
 	~D3DManager(){}
-	bool InitD3DManager(const WndManager* wnd, uint32_t frameCount);
+	bool Init(const WndManager* wnd, uint32_t frameCount);
 	void StartRender();
 	void EndRender();
 	void SetClearColor(float red, float green, float blue, float alpha);
+	GraphicManager* GetGraphicManager() {
+		return gManager.get();
+	}
 private:
 	std::unique_ptr<GraphicManager>		gManager;
-	//std::unique_ptr<RenderManager>	rManager;
 	std::unique_ptr<WndManager>			wManager;
 
 	uint32_t		frameCount;
