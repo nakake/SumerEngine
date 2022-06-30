@@ -19,8 +19,8 @@ public:
 private:
 	GraphicManager* gEngine;
 	uint32_t		frameCount;
-	float			rotateX;
-	float			rotateY;
-	float			rotateZ;
+	float			rotateX = 0.0f;
+	float			rotateY = 0.0f;
+	float			rotateZ = 0.0f;
 };
 

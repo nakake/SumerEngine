@@ -4,49 +4,74 @@
 #include "RootSignature.h"
 #include "PipelineState.h"
 #include "IndexBuffer.h"
+#include "AssimpLoader.h"
+#include "DescriptorHeap.h"
+#include "Texture2D.h"
 
-std::unique_ptr<VertexBuffer>					vertexBuffer;
+std::vector<std::unique_ptr<VertexBuffer>>		vertexBuffer;
+std::vector<std::unique_ptr<IndexBuffer>>		indexBuffer;
 std::vector<std::unique_ptr<ConstantBuffer>>	constantBuffer;
 std::unique_ptr<RootSignature>					rootSignature;
 std::unique_ptr<PipelineState>					pipelineState;
-std::unique_ptr<IndexBuffer>					indexBuffer;
+std::vector<Mesh>								meshes;
+std::unique_ptr<DescriptorHeap>					descriptorHeap;
+std::vector<std::unique_ptr<Texture2D>>			pTexs;
 
+const wchar_t* modelFile = L"Assets/Alicia/FBX/Alicia_solid_Unity.FBX";
+
+//初期化処理
 bool Scene::Init() {
-	
-	Vertex vertices[4] = {};
-	vertices[0].Position	= DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f);
-	vertices[0].Color		= DirectX::XMFLOAT4( 1.0f,  0.0f, 0.0f, 1.0f);
 
-	vertices[1].Position	= DirectX::XMFLOAT3( 1.0f,  1.0f, 0.0f);
-	vertices[1].Color		= DirectX::XMFLOAT4( 0.0f,  1.0f, 0.0f, 1.0f);
+	ImportSettings importSetting = { modelFile,meshes,false,true };
 
-	vertices[2].Position	= DirectX::XMFLOAT3( 1.0f, -1.0f, 0.0f);
-	vertices[2].Color		= DirectX::XMFLOAT4( 0.0f,  0.0f, 1.0f, 1.0f);
-
-	vertices[3].Position	= DirectX::XMFLOAT3(-1.0f,-1.0f, 0.0f);
-	vertices[3].Color		= DirectX::XMFLOAT4( 1.0f, 0.0f, 1.0f, 1.0f);
-
-	//VertexBuffer Init
-	vertexBuffer.reset(new VertexBuffer(sizeof(Vertex) * std::size(vertices), sizeof(Vertex), vertices, gEngine));
-	if (!vertexBuffer->IsValid()) {
-		ErrorMessage(gEngine->GetWnd()->getHandleWnd(), TEXT("頂点バッファの生成に失敗"));
+	AssimpLoader loder;
+	if (!loder.Load(importSetting)) {
 		return false;
 	}
+	
+
+	//VertexBuffer Init
+	vertexBuffer.reserve(meshes.size());
+	for (size_t i = 0; i < meshes.size(); ++i) {
+		auto size = sizeof(Vertex) * meshes[i].Vertices.size();
+		auto stride = sizeof(Vertex);
+		auto vertices = meshes[i].Vertices.data();
+		
+		std::unique_ptr<VertexBuffer> pVB;
+		pVB.reset(new VertexBuffer(size, stride, vertices, gEngine));
+
+		if (!pVB->IsValid()) {
+			ErrorMessage(gEngine->GetWnd()->getHandleWnd(), TEXT("頂点バッファの生成に失敗"));
+			return false;
+		}
+
+		vertexBuffer.push_back(std::move(pVB));
+	}
+	
 
 	//indexBuffer Init
-	uint32_t indices[] = { 0,1,2,0,2,3 };
+	indexBuffer.reserve(meshes.size());
 
-	indexBuffer.reset(new IndexBuffer(sizeof(uint32_t) * std::size(indices), indices, gEngine));
-	if (!indexBuffer->IsValid()) {
-		ErrorMessage(gEngine->GetWnd()->getHandleWnd(), TEXT("インデックスバッファの生成に失敗"));
-		return false;
+	for (size_t i = 0; i < meshes.size(); ++i) {
+		auto size		= sizeof(uint32_t) * meshes[i].Indices.size();
+		auto indices	= meshes[i].Indices.data();
+
+		std::unique_ptr<IndexBuffer> pIB;
+		pIB.reset(new IndexBuffer(size, indices, gEngine));
+
+		if (!pIB->IsValid()) {
+			ErrorMessage(gEngine->GetWnd()->getHandleWnd(), TEXT("インデックスバッファの生成に失敗"));
+			return false;
+		}
+
+		indexBuffer.push_back(std::move(pIB));
 	}
 
 	//ConstantBuffer Init
-	auto eyePos		= DirectX::XMVectorSet(0.0f, 0.0f, 5.0f, 0.0f);
-	auto targetPos	= DirectX::XMVectorZero();
+	auto eyePos		= DirectX::XMVectorSet(0.0f, 120.0f, 75.0f, 0.0f);
+	auto targetPos	= DirectX::XMVectorSet(0.0f, 120.f, 0.0f, 0.0f);
 	auto upward		= DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	auto fov		= DirectX::XMConvertToRadians(37.5);
+	auto fov		= DirectX::XMConvertToRadians(60);
 	auto aspect = static_cast<float>(gEngine->GetWnd()->GetWidth()) / static_cast<float>(gEngine->GetWnd()->GetHeight());
 
 	constantBuffer.resize(frameCount);
@@ -62,6 +87,15 @@ bool Scene::Init() {
 		ptr->World	= DirectX::XMMatrixIdentity();
 		ptr->View	= DirectX::XMMatrixLookAtRH(eyePos, targetPos, upward);
 		ptr->Proj	= DirectX::XMMatrixPerspectiveFovRH(fov, aspect, 0.3f, 1000.0f);
+	}
+
+	descriptorHeap.reset(new DescriptorHeap(gEngine));
+	for (size_t i = 0; i < meshes.size(); ++i) {
+		auto texPath = ReplaceExtension(meshes[i].DiffuseMap, "tga");
+		auto mainTex = Texture2D::Get(texPath, gEngine);
+		std::unique_ptr<Texture2D> pTex(mainTex);
+		descriptorHeap->Register(pTex.get());
+		pTexs.push_back(std::move(pTex));
 	}
 
 	//RootSignature Init
@@ -97,16 +131,24 @@ void Scene::Update() {
 void Scene::Draw() {
 	auto currentIndex	= gEngine->GetFrameIndex();
 	auto commndList		= gEngine->GetCmdList();
-	auto vbView			= vertexBuffer->View();
-	auto ibView			= indexBuffer->View();
+	auto materialHeap	= descriptorHeap->GetHeap();
 
-	commndList->SetGraphicsRootSignature(rootSignature->Get());
-	commndList->SetPipelineState(pipelineState->Get());
-	commndList->SetGraphicsRootConstantBufferView(0, constantBuffer[currentIndex]->GetAddress());
+	for (size_t i = 0; i < meshes.size(); ++i) {
+		auto vbView	= vertexBuffer[i]->View();
+		auto ibView	= indexBuffer[i]->View();
 
-	commndList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	commndList->IASetVertexBuffers(0, 1, &vbView);
-	commndList->IASetIndexBuffer(&ibView);
+		commndList->SetGraphicsRootSignature(rootSignature->Get());
+		commndList->SetPipelineState(pipelineState->Get());
+		commndList->SetGraphicsRootConstantBufferView(0, constantBuffer[currentIndex]->GetAddress());
 
-	commndList->DrawInstanced(3, 1, 0, 0);
+		commndList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		commndList->IASetVertexBuffers(0, 1, &vbView);
+		commndList->IASetIndexBuffer(&ibView);
+
+		commndList->SetDescriptorHeaps(1, &materialHeap);
+		commndList->SetGraphicsRootDescriptorTable(1, descriptorHeap->pHandles[i]->HandleGPU);
+
+		commndList->DrawIndexedInstanced(meshes[i].Indices.size(), 1, 0, 0, 0);
+	}
+	
 }

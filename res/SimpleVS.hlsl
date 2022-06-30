@@ -18,6 +18,7 @@ struct VSOutput
 {
 	float4 svpos	: SV_POSITION;
 	float4 color	: COLOR;
+	float2 uv		: TEXCOORD;
 };
 
 VSOutput vert(VSInput input) 
@@ -29,8 +30,9 @@ VSOutput vert(VSInput input)
 	float4 viewPos  = mul(View, worldPos);
 	float4 projPos  = mul(Proj, viewPos);
 
-	output.svpos = projPos;
-	output.color = input.color;
+	output.svpos	= projPos;
+	output.color	= input.color;
+	output.uv		= input.uv;
 
 	return output;
 }
