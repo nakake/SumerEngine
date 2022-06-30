@@ -19,23 +19,29 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Assimp\AssimpLoader.cpp" />
     <ClCompile Include="src\D3DManager\ConstantBuffer.cpp" />
     <ClCompile Include="src\D3DManager\D3DManager.cpp" />
+    <ClCompile Include="src\D3DManager\DescriptorHeap.cpp" />
     <ClCompile Include="src\D3DManager\GraphicManager.cpp" />
     <ClCompile Include="src\D3DManager\IndexBuffer.cpp" />
     <ClCompile Include="src\D3DManager\PipelineState.cpp" />
     <ClCompile Include="src\D3DManager\RootSignature.cpp" />
     <ClCompile Include="src\D3DManager\Scene.cpp" />
+    <ClCompile Include="src\D3DManager\Texture2D.cpp" />
     <ClCompile Include="src\D3DManager\VertexBuffer.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ShaderStruct.cpp" />
+    <ClCompile Include="src\StringManager.cpp" />
     <ClCompile Include="src\SumerEngine.cpp" />
     <ClCompile Include="src\WndManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\AssimpLoader.h" />
     <ClInclude Include="include\ComPtr.h" />
     <ClInclude Include="include\ConstantBuffer.h" />
     <ClInclude Include="include\D3DManager.h" />
+    <ClInclude Include="include\DescriptorHeap.h" />
     <ClInclude Include="include\ErrorMassage.h" />
     <ClInclude Include="include\GraphicManager.h" />
     <ClInclude Include="include\IFManager.h" />
@@ -44,7 +50,9 @@
     <ClInclude Include="include\RootSignature.h" />
     <ClInclude Include="include\Scene.h" />
     <ClInclude Include="include\ShaderSturuct.h" />
+    <ClInclude Include="include\StringManager.h" />
     <ClInclude Include="include\SumerEngine.h" />
+    <ClInclude Include="include\Texture2D.h" />
     <ClInclude Include="include\VertexBuffer.h" />
     <ClInclude Include="include\WndManager.h" />
   </ItemGroup>
@@ -88,26 +96,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -178,11 +186,12 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(DXTEX_DIR);$(ProjectDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>${DXTEX_DIR}/Bin/Desctop_2019_Win10/x64/Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(DXTEX_DIR)/Bin/Desktop_2019_Win10/x64/Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -194,6 +203,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>${DXTEX_DIR};$(ProjectDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

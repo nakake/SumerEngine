@@ -1,5 +1,7 @@
 #pragma once
 
+#define NOMINMAX
+
 #include <cstdint>
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -15,6 +17,7 @@
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "DirectXTex.lib")
 
 enum SME_FRAMEBUFFER {
 	SME_FRAMEBUFFER_SINGLE = 1,

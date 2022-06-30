@@ -21,8 +21,5 @@ private:
 	bool isValid = false;
 	ComPtr<ID3D12Resource> pBuffer;
 	D3D12_VERTEX_BUFFER_VIEW view = {};
-
-	VertexBuffer(const VertexBuffer&) = delete;
-	void operator = (const VertexBuffer&) = delete;
 };
 

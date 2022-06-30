@@ -22,8 +22,5 @@ private:
 	bool isValid = false;
 	ComPtr<ID3D12Resource> pBuffer;
 	D3D12_INDEX_BUFFER_VIEW view;
-
-	IndexBuffer(const IndexBuffer&) = delete;
-	void operator = (const IndexBuffer&) = delete;
 };
 
